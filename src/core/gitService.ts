@@ -1,4 +1,5 @@
 import { execFile } from 'child_process';
+import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { WorktreeInfo, WorktreeStatusInfo, CommitInfo, BranchInfo } from '../shared/types';
 import { logCommand, logError } from '../utils/logger';
@@ -48,7 +49,20 @@ export class GitService {
     if (force) {
       args.push('--force');
     }
-    await this.exec(args, { timeout: 15000 });
+    try {
+      await this.exec(args, { timeout: 15000 });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('Permission denied') || msg.includes('EBUSY') || msg.includes('EPERM')) {
+        // Windows fallback: git can't delete because of file locks.
+        // Manually remove the directory then let git prune clean up metadata.
+        logError('git worktree remove failed with permission error, trying fs.rm fallback', err);
+        await fs.rm(worktreePath, { recursive: true, force: true, maxRetries: 3, retryDelay: 500 });
+        await this.exec(['worktree', 'prune']);
+      } else {
+        throw err;
+      }
+    }
   }
 
   async pruneWorktrees(): Promise<void> {
@@ -119,6 +133,15 @@ export class GitService {
       .split('\n')
       .map((line) => line.replace(/^\*?\s+/, '').trim())
       .filter((name) => name.length > 0);
+  }
+
+  async isBranchMergedInto(branch: string, target: string): Promise<boolean> {
+    try {
+      await this.exec(['merge-base', '--is-ancestor', branch, target]);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   // --- Status Operations ---

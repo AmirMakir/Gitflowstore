@@ -44,7 +44,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     webviewView.webview.html = this.getHtmlForWebview(webviewView.webview);
 
     webviewView.webview.onDidReceiveMessage(
-      (message: WebviewMessage) => this.handleMessage(message),
+      (message: WebviewMessage) => {
+        this.handleMessage(message).catch((err) => {
+          logError('Message handler error', err);
+          this.postMessage({
+            type: 'error',
+            message: `Error: ${err instanceof Error ? err.message : String(err)}`,
+          });
+        });
+      },
       undefined,
       this.disposables
     );
@@ -157,27 +165,39 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       }
 
       case 'removeWorktree': {
+        const branchName = path.basename(message.path);
         const confirm = await vscode.window.showWarningMessage(
-          `Remove worktree at ${message.path}?`,
-          { modal: true },
-          'Remove'
+          `Delete worktree "${branchName}"?`,
+          { modal: true, detail: message.path },
+          'Delete'
         );
-        if (confirm === 'Remove') {
-          try {
-            await this.worktreeService.remove(message.path, message.force);
-            this.postMessage({
-              type: 'removeResult',
-              success: true,
-              path: message.path,
-            });
-          } catch (err) {
-            logError('Failed to remove worktree', err);
-            this.postMessage({
-              type: 'removeResult',
-              success: false,
-              path: message.path,
-              error: err instanceof Error ? err.message : String(err),
-            });
+        if (confirm !== 'Delete') break;
+
+        try {
+          await this.worktreeService.remove(message.path, true);
+          this.postMessage({ type: 'removeResult', success: true, path: message.path });
+        } catch (err) {
+          logError('Failed to remove worktree', err);
+          const errMsg = err instanceof Error ? err.message : String(err);
+
+          if (errMsg.includes('Permission denied')) {
+            const retry = await vscode.window.showErrorMessage(
+              `Cannot delete "${branchName}": a program has files locked in this folder. Close any VS Code windows, terminals, or editors open in this worktree, then retry.`,
+              'Retry'
+            );
+            if (retry === 'Retry') {
+              try {
+                await this.worktreeService.remove(message.path, true);
+                this.postMessage({ type: 'removeResult', success: true, path: message.path });
+              } catch (retryErr) {
+                logError('Retry remove failed', retryErr);
+                vscode.window.showErrorMessage(
+                  `Still cannot delete: ${retryErr instanceof Error ? retryErr.message : retryErr}`
+                );
+              }
+            }
+          } else {
+            vscode.window.showErrorMessage(`Failed to remove worktree: ${errMsg}`);
           }
         }
         break;

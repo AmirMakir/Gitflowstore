@@ -5,6 +5,11 @@
   "version": "0.1.0",
   "publisher": "gitflow-studio",
   "license": "MIT",
+  "icon": "resources/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/gitflow-studio"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -165,6 +170,8 @@
     "watch:ext": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch",
     "watch:webview": "cd webview-ui && npm run dev",
     "lint": "eslint src --ext .ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "package": "vsce package"
   },
   "devDependencies": {
@@ -176,6 +183,7 @@
     "@vscode/vsce": "^2.22.0",
     "eslint": "^8.56.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
-    "@typescript-eslint/parser": "^7.0.0"
+    "@typescript-eslint/parser": "^7.0.0",
+    "vitest": "^3.0.0"
   }
 }

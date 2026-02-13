@@ -42,7 +42,25 @@ export class WorktreeService implements vscode.Disposable {
         repoRoot = worktrees[0]?.path ?? '';
       }
 
-      const mergedBranches = await this.git.getMergedBranches().catch(() => [] as string[]);
+      // Find the main branch to check merged status against
+      const mainBranch = await this.detectMainBranch(worktrees);
+
+      // Check each non-main branch individually using merge-base --is-ancestor
+      const mergedSet = new Set<string>();
+      await Promise.all(
+        worktrees
+          .filter((wt) => wt.branchShort && wt.branchShort !== mainBranch)
+          .map(async (wt) => {
+            const merged = await this.git
+              .isBranchMergedInto(wt.branchShort, mainBranch)
+              .catch(() => false);
+            if (merged) {
+              mergedSet.add(wt.branchShort);
+            }
+          })
+      );
+
+      const mergedBranches = Array.from(mergedSet);
 
       const cards = await Promise.all(
         worktrees.map((wt) => this.buildCard(wt, repoRoot, mergedBranches))
@@ -151,6 +169,25 @@ export class WorktreeService implements vscode.Disposable {
     }
 
     return 'idle';
+  }
+
+  private async detectMainBranch(worktrees: WorktreeInfo[]): Promise<string> {
+    // Find the main worktree's branch (first worktree is usually main)
+    const mainWt = worktrees[0];
+    if (mainWt?.branchShort) {
+      return mainWt.branchShort;
+    }
+    // Fallback: check for common main branch names
+    try {
+      const branches = await this.git.listLocalBranches();
+      const names = branches.map((b) => b.name);
+      for (const candidate of ['main', 'master', 'develop']) {
+        if (names.includes(candidate)) return candidate;
+      }
+    } catch {
+      // ignore
+    }
+    return 'main';
   }
 
   private sanitizeBranchName(branch: string): string {

@@ -111,9 +111,15 @@ export function useBranches(vscode: VSCodeApi) {
   return { branches, loading, fetch };
 }
 
+export interface CleanupResult {
+  succeeded: string[];
+  failed: Array<{ path: string; error: string }>;
+}
+
 export function useCleanup(vscode: VSCodeApi) {
   const [candidates, setCandidates] = useState<CleanupCandidate[]>([]);
   const [loading, setLoading] = useState(false);
+  const [lastResult, setLastResult] = useState<CleanupResult | null>(null);
 
   useEffect(() => {
     const handler = (event: MessageEvent) => {
@@ -124,6 +130,8 @@ export function useCleanup(vscode: VSCodeApi) {
           setLoading(false);
           break;
         case 'cleanupResult':
+          setLastResult({ succeeded: message.succeeded, failed: message.failed });
+          setLoading(true);
           vscode.postMessage({ type: 'requestCleanupAnalysis' });
           break;
       }
@@ -139,10 +147,13 @@ export function useCleanup(vscode: VSCodeApi) {
 
   const batchRemove = useCallback(
     (paths: string[]) => {
+      setLoading(true);
       vscode.postMessage({ type: 'batchRemove', paths });
     },
     [vscode]
   );
 
-  return { candidates, loading, analyze, batchRemove };
+  const clearResult = useCallback(() => setLastResult(null), []);
+
+  return { candidates, loading, analyze, batchRemove, lastResult, clearResult };
 }

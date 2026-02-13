@@ -14,13 +14,20 @@ interface Props {
 type FilterType = 'all' | 'merged' | 'stale' | 'prunable';
 
 export function CleanupView({ vscode, onBack }: Props) {
-  const { candidates, loading, analyze, batchRemove } = useCleanup(vscode);
+  const { candidates, loading, analyze, batchRemove, lastResult, clearResult } = useCleanup(vscode);
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<FilterType>('all');
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
 
   useEffect(() => {
     analyze();
   }, [analyze]);
+
+  // Clear selection when candidates update after removal
+  useEffect(() => {
+    setSelectedPaths(new Set());
+    setConfirmingRemove(false);
+  }, [candidates]);
 
   const filtered = candidates.filter(
     (c) => filter === 'all' || c.reason === filter
@@ -48,8 +55,15 @@ export function CleanupView({ vscode, onBack }: Props) {
 
   const handleBatchRemove = () => {
     if (selectedPaths.size === 0) return;
+
+    if (!confirmingRemove) {
+      setConfirmingRemove(true);
+      return;
+    }
+
+    clearResult();
     batchRemove(Array.from(selectedPaths));
-    setSelectedPaths(new Set());
+    setConfirmingRemove(false);
   };
 
   const countByReason = (reason: string) =>
@@ -67,6 +81,38 @@ export function CleanupView({ vscode, onBack }: Props) {
         </button>
         <span className="font-semibold text-[13px]">Cleanup Manager</span>
       </div>
+
+      {/* Last result notification */}
+      {lastResult && (
+        <div
+          className="p-2 mb-3 rounded text-[11px]"
+          style={{
+            backgroundColor: lastResult.failed.length > 0
+              ? 'var(--vscode-inputValidation-warningBackground)'
+              : 'var(--vscode-editor-background)',
+            border: lastResult.failed.length > 0
+              ? '1px solid var(--vscode-inputValidation-warningBorder)'
+              : '1px solid var(--vscode-focusBorder)',
+          }}
+        >
+          {lastResult.succeeded.length > 0 && (
+            <div style={{ color: 'var(--vscode-charts-green, #89d185)' }}>
+              Removed {lastResult.succeeded.length} worktree{lastResult.succeeded.length !== 1 ? 's' : ''}
+            </div>
+          )}
+          {lastResult.failed.map((f) => (
+            <div key={f.path} style={{ color: 'var(--vscode-errorForeground)' }}>
+              Failed: {f.path.split(/[/\\]/).pop()} — {f.error}
+            </div>
+          ))}
+          <button
+            className="mt-1 text-[10px] opacity-50 hover:opacity-100"
+            onClick={clearResult}
+          >
+            dismiss
+          </button>
+        </div>
+      )}
 
       {/* Filter tabs */}
       <div className="flex gap-1 mb-3 flex-wrap">
@@ -144,17 +190,34 @@ export function CleanupView({ vscode, onBack }: Props) {
 
           {/* Batch remove button */}
           {selectedPaths.size > 0 && (
-            <button
-              className="w-full mt-3 py-1.5 rounded text-[12px] transition-colors"
-              style={{
-                backgroundColor: 'var(--vscode-errorForeground)',
-                color: '#fff',
-                opacity: 0.9,
-              }}
-              onClick={handleBatchRemove}
-            >
-              Remove {selectedPaths.size} worktree{selectedPaths.size !== 1 ? 's' : ''}
-            </button>
+            <div className="flex gap-2 mt-3">
+              <button
+                className="flex-1 py-1.5 rounded text-[12px] transition-colors"
+                style={{
+                  backgroundColor: confirmingRemove
+                    ? 'var(--vscode-errorForeground)'
+                    : 'var(--vscode-button-background)',
+                  color: confirmingRemove ? '#fff' : 'var(--vscode-button-foreground)',
+                }}
+                onClick={handleBatchRemove}
+              >
+                {confirmingRemove
+                  ? `Confirm delete ${selectedPaths.size}?`
+                  : `Remove ${selectedPaths.size} worktree${selectedPaths.size !== 1 ? 's' : ''}`}
+              </button>
+              {confirmingRemove && (
+                <button
+                  className="px-3 py-1.5 rounded text-[12px]"
+                  style={{
+                    backgroundColor: 'var(--vscode-button-secondaryBackground)',
+                    color: 'var(--vscode-button-secondaryForeground)',
+                  }}
+                  onClick={() => setConfirmingRemove(false)}
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           )}
         </>
       )}

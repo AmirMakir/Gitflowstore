@@ -13,10 +13,13 @@ export class CleanupService {
 
   async analyze(): Promise<CleanupCandidate[]> {
     const worktrees = await this.worktreeService.getAll(true);
-    const mergedBranches = await this.git.getMergedBranches().catch(() => [] as string[]);
     const staleThreshold = this.config.get<number>('staleThresholdDays', 14);
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - staleThreshold);
+
+    // Detect main branch for merge checking
+    const mainWt = worktrees.find((wt) => wt.isMain);
+    const mainBranch = mainWt?.branchShort || 'main';
 
     const candidates: CleanupCandidate[] = [];
 
@@ -36,7 +39,12 @@ export class CleanupService {
       const hasChanges =
         wt.modifiedCount > 0 || wt.untrackedCount > 0 || wt.stagedCount > 0;
 
-      if (mergedBranches.includes(wt.branchShort)) {
+      // Use merge-base --is-ancestor for reliable merge detection
+      const isMerged = await this.git
+        .isBranchMergedInto(wt.branchShort, mainBranch)
+        .catch(() => false);
+
+      if (isMerged) {
         candidates.push({
           worktree: wt,
           reason: 'merged',
@@ -75,7 +83,10 @@ export class CleanupService {
         await this.git.removeWorktree(p, true);
         succeeded.push(p);
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
+        let message = err instanceof Error ? err.message : String(err);
+        if (message.includes('Permission denied')) {
+          message = 'Permission denied — close any VS Code windows or terminals open in this worktree';
+        }
         logError(`Failed to remove worktree: ${p}`, err);
         failed.push({ path: p, error: message });
       }
