@@ -53,11 +53,11 @@ export class GitService {
       await this.exec(args, { timeout: 15000 });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes('Permission denied') || msg.includes('EBUSY') || msg.includes('EPERM')) {
+      if (msg.includes('Permission denied') || msg.includes('EBUSY') || msg.includes('EPERM') || msg.includes('resource busy')) {
         // Windows fallback: git can't delete because of file locks.
         // Manually remove the directory then let git prune clean up metadata.
         logError('git worktree remove failed with permission error, trying fs.rm fallback', err);
-        await fs.rm(worktreePath, { recursive: true, force: true, maxRetries: 3, retryDelay: 500 });
+        await fs.rm(worktreePath, { recursive: true, force: true, maxRetries: 5, retryDelay: 1000 });
         await this.exec(['worktree', 'prune']);
       } else {
         throw err;

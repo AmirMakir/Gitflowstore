@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "publisher": "gitflow-studio",
   "license": "MIT",
-  "icon": "resources/icon.png",
+  "icon": "resources/gitflow_studio.jpg",
   "repository": {
     "type": "git",
     "url": "https://github.com/your-username/gitflow-studio"
