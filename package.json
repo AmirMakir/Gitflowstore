@@ -1,0 +1,181 @@
+{
+  "name": "gitflow-studio",
+  "displayName": "GitFlow Studio",
+  "description": "Visual git worktree manager with AI agent integration for parallel development workflows",
+  "version": "0.1.0",
+  "publisher": "gitflow-studio",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "keywords": [
+    "git",
+    "worktree",
+    "worktrees",
+    "branch",
+    "ai",
+    "claude",
+    "parallel",
+    "workflow"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "workspaceContains:.git"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gitflow-studio",
+          "title": "GitFlow Studio",
+          "icon": "resources/gitflow-studio.svg"
+        }
+      ]
+    },
+    "views": {
+      "gitflow-studio": [
+        {
+          "type": "webview",
+          "id": "gitflowStudio.dashboard",
+          "name": "Worktrees",
+          "contextualTitle": "GitFlow Studio"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "gitflowStudio.createWorktree",
+        "title": "Create Worktree",
+        "category": "GitFlow Studio",
+        "icon": "$(add)"
+      },
+      {
+        "command": "gitflowStudio.quickSwitch",
+        "title": "Quick Switch Worktree",
+        "category": "GitFlow Studio"
+      },
+      {
+        "command": "gitflowStudio.openWorktree",
+        "title": "Open Worktree in New Window",
+        "category": "GitFlow Studio",
+        "icon": "$(window)"
+      },
+      {
+        "command": "gitflowStudio.removeWorktree",
+        "title": "Remove Worktree",
+        "category": "GitFlow Studio",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "gitflowStudio.refreshWorktrees",
+        "title": "Refresh Worktrees",
+        "category": "GitFlow Studio",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitflowStudio.showCleanup",
+        "title": "Cleanup Manager",
+        "category": "GitFlow Studio",
+        "icon": "$(clear-all)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "gitflowStudio.createWorktree",
+          "when": "view == gitflowStudio.dashboard",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gitflowStudio.refreshWorktrees",
+          "when": "view == gitflowStudio.dashboard",
+          "group": "navigation@2"
+        },
+        {
+          "command": "gitflowStudio.showCleanup",
+          "when": "view == gitflowStudio.dashboard",
+          "group": "navigation@3"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "gitflowStudio.quickSwitch",
+        "key": "ctrl+shift+w",
+        "mac": "cmd+shift+w",
+        "when": "gitflowStudio.hasWorktrees"
+      }
+    ],
+    "configuration": {
+      "title": "GitFlow Studio",
+      "properties": {
+        "gitflowStudio.autoSetup.copyFiles": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [".env", ".env.local"],
+          "description": "Files to copy from main worktree when creating a new worktree"
+        },
+        "gitflowStudio.autoSetup.symlinkDirs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Directories to symlink (e.g., node_modules) instead of copying"
+        },
+        "gitflowStudio.autoSetup.postCreateCommands": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Shell commands to run after worktree creation (e.g., npm install)"
+        },
+        "gitflowStudio.autoSetup.openInNewWindow": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open new worktree in a new VS Code window by default"
+        },
+        "gitflowStudio.worktreeBasePath": {
+          "type": "string",
+          "default": "",
+          "description": "Base directory for new worktrees. Empty = sibling to main repo."
+        },
+        "gitflowStudio.pollIntervalSeconds": {
+          "type": "number",
+          "default": 30,
+          "minimum": 5,
+          "maximum": 300,
+          "description": "Interval in seconds for polling remote status (ahead/behind)"
+        },
+        "gitflowStudio.staleThresholdDays": {
+          "type": "number",
+          "default": 14,
+          "description": "Worktrees with no commits for this many days are marked stale"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "npm run build:ext && npm run build:webview",
+    "build:ext": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap",
+    "build:webview": "cd webview-ui && npm run build",
+    "watch": "concurrently \"npm run watch:ext\" \"npm run watch:webview\"",
+    "watch:ext": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch",
+    "watch:webview": "cd webview-ui && npm run dev",
+    "lint": "eslint src --ext .ts",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.20.0",
+    "concurrently": "^8.0.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.22.0",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0"
+  }
+}
