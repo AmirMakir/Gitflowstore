@@ -1,103 +1,79 @@
 # GitFlow Store
 
-**Visual git worktree manager for VS Code** — run multiple branches side-by-side, each in its own isolated workspace.
+Finally, a normal UI for git worktrees in VS Code.
 
 [![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/AmirMakir.gitflow-store)](https://marketplace.visualstudio.com/items?itemName=AmirMakir.gitflow-store)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
----
+## The problem
 
-## Why Worktrees?
+If you work on multiple features or bugs at the same time, you know the pain. Stash your changes, checkout another branch, wait for deps to install, fix the bug, then go back and try to remember where you left off. It's awful.
 
-Developers using AI agents (Claude Code, Copilot, Aider) hit a wall: **one directory = one branch = one agent**. Switching tasks means stashing, checking out, losing context, and rebuilding.
+Git worktrees fix this. Each branch lives in its own folder, fully independent. But almost nobody uses them because the only way to manage them is through the terminal, and it gets messy fast.
 
-[Git worktrees](https://git-scm.com/docs/git-worktree) solve this — each branch gets its own folder. But managing them is CLI-only with zero visual tooling. **Less than 5% of developers use them.**
+I built this extension because I got tired of juggling worktrees manually.
 
-GitFlow Store changes that with a visual dashboard built into VS Code.
+## What it does
 
----
+It adds a sidebar panel to VS Code where you can see all your worktrees, create new ones, switch between them, and clean up old ones. No terminal needed.
 
-## Features
+### Dashboard
 
-### Worktree Dashboard
+The sidebar shows cards for each worktree with the stuff you actually care about: branch name, how many files you changed, whether you're ahead/behind remote, and when the last commit was. Worktrees get tagged as active, idle, merged, or stale so you can tell what's going on at a glance.
 
-A sidebar panel showing all your worktrees at a glance:
+### Creating worktrees
 
-- Branch name and file path
-- Uncommitted changes count
-- Ahead/behind remote tracking
-- Last commit message and timestamp
-- Status badges: **active** / **idle** / **merged** / **stale**
+Hit the + button, pick a branch (or make a new one), and you're done. The extension can automatically copy over your `.env` files, symlink `node_modules` so you don't waste disk space, and run whatever setup commands you need. It opens in a new VS Code window by default.
 
-### One-Click Creation
+### Quick Switch
 
-Create new worktrees without touching the terminal:
+Press `Ctrl+Shift+W` (or `Cmd+Shift+W` on Mac) to get a fuzzy search popup across all your worktrees. Think of it like `Ctrl+P` but for workspaces instead of files.
 
-- Pick an existing branch or create a new one from any base
-- Auto-setup: copy `.env` files, symlink `node_modules`, run install commands
-- Optionally open in a new VS Code window
+### Cleanup
 
-### Quick Switch (`Ctrl+Shift+W` / `Cmd+Shift+W`)
+Worktrees pile up. The cleanup view lets you filter by merged branches, stale worktrees, or prunable entries and delete them in batch. It warns you if something has uncommitted changes before you nuke it.
 
-Fuzzy search across all worktrees — like `Ctrl+P` for files, but for workspaces.
+### Status Bar
 
-### Cleanup Manager
+Shows which worktree you're in and how many you have total. Click it to quick-switch.
 
-Keep your repo tidy:
+## Settings
 
-- Filter by: merged branches, stale worktrees, prunable entries
-- Batch delete with safety warnings for uncommitted changes
+All settings live under `gitflowStore.*` in your VS Code settings:
 
-### Auto-Setup Pipeline
-
-Configure per-project automation in `settings.json`:
-
-- **Copy files** — `.env`, `.env.local`, config files
-- **Symlink directories** — `node_modules`, `.venv` (saves disk space)
-- **Post-create commands** — `npm install`, `pip install -r requirements.txt`
-
-### Status Bar Integration
-
-Shows current worktree name and total count. Click to quick-switch.
-
----
-
-## Extension Settings
-
-| Setting | Default | Description |
+| Setting | Default | What it does |
 |---------|---------|-------------|
-| `gitflowStore.autoSetup.copyFiles` | `[".env", ".env.local"]` | Files to copy from main worktree |
-| `gitflowStore.autoSetup.symlinkDirs` | `[]` | Directories to symlink instead of copying |
-| `gitflowStore.autoSetup.postCreateCommands` | `[]` | Shell commands to run after creation |
-| `gitflowStore.autoSetup.openInNewWindow` | `true` | Open new worktree in a new VS Code window |
-| `gitflowStore.worktreeBasePath` | `""` | Base directory for worktrees (empty = sibling to repo) |
-| `gitflowStore.pollIntervalSeconds` | `30` | Interval (seconds) for remote status polling |
-| `gitflowStore.staleThresholdDays` | `14` | Days before a worktree is marked stale |
+| `gitflowStore.autoSetup.copyFiles` | `[".env", ".env.local"]` | Files to copy when creating a worktree |
+| `gitflowStore.autoSetup.symlinkDirs` | `[]` | Dirs to symlink instead of copy (like `node_modules`) |
+| `gitflowStore.autoSetup.postCreateCommands` | `[]` | Commands to run after creation (like `npm install`) |
+| `gitflowStore.autoSetup.openInNewWindow` | `true` | Open new worktree in a separate window |
+| `gitflowStore.worktreeBasePath` | `""` | Where to put worktrees. Empty = next to your repo |
+| `gitflowStore.pollIntervalSeconds` | `30` | How often to check remote status |
+| `gitflowStore.staleThresholdDays` | `14` | Days of no commits before marking as stale |
 
 ## Commands
 
-| Command | Keybinding | Description |
+| Command | Keybinding | What it does |
 |---------|------------|-------------|
-| GitFlow Store: Create Worktree | — | Open the worktree creation form |
-| GitFlow Store: Quick Switch Worktree | `Ctrl+Shift+W` | Fuzzy search and switch worktrees |
-| GitFlow Store: Open Worktree in New Window | — | Open a worktree in a separate VS Code window |
-| GitFlow Store: Remove Worktree | — | Delete a worktree with safety checks |
-| GitFlow Store: Refresh Worktrees | — | Refresh the dashboard data |
-| GitFlow Store: Cleanup Manager | — | Open the cleanup view |
+| GitFlow Store: Create Worktree | | Create a new worktree |
+| GitFlow Store: Quick Switch Worktree | `Ctrl+Shift+W` | Fuzzy search your worktrees |
+| GitFlow Store: Open Worktree in New Window | | Open in a new VS Code window |
+| GitFlow Store: Remove Worktree | | Delete a worktree (with safety checks) |
+| GitFlow Store: Refresh Worktrees | | Refresh the dashboard |
+| GitFlow Store: Cleanup Manager | | Open cleanup view |
 
 ## Requirements
 
-- **VS Code** 1.85 or later
-- **Git** 2.15+ installed and available in PATH
+- VS Code 1.85+
+- Git 2.15+
 
-## Roadmap
+## What's next
 
-- **v0.2** — Per-worktree AI sessions (Claude Code, Aider integration)
-- **v0.3** — Worktree templates, branch comparison view
+Working on per-worktree AI agent sessions (so each worktree can have its own Claude Code or Aider instance) and worktree templates for common workflows.
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/AmirMakir/Gitflowstore).
+Found a bug or want a feature? Open an issue or PR on [GitHub](https://github.com/AmirMakir/Gitflowstore).
 
 ## License
 

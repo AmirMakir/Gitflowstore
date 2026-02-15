@@ -1,7 +1,7 @@
 {
   "name": "gitflow-store",
   "displayName": "GitFlow Store",
-  "description": "Visual git worktree manager with AI agent integration for parallel development workflows",
+  "description": "Manage git worktrees from a sidebar panel. Create, switch, and clean up worktrees without the terminal.",
   "version": "0.1.0",
   "publisher": "AmirMakir",
   "license": "MIT",
