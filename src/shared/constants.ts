@@ -1,18 +1,18 @@
 export const VIEW_IDS = {
-  dashboard: 'gitflowStudio.dashboard',
+  dashboard: 'gitflowStore.dashboard',
 } as const;
 
 export const COMMANDS = {
-  createWorktree: 'gitflowStudio.createWorktree',
-  quickSwitch: 'gitflowStudio.quickSwitch',
-  openWorktree: 'gitflowStudio.openWorktree',
-  removeWorktree: 'gitflowStudio.removeWorktree',
-  refreshWorktrees: 'gitflowStudio.refreshWorktrees',
-  showCleanup: 'gitflowStudio.showCleanup',
+  createWorktree: 'gitflowStore.createWorktree',
+  quickSwitch: 'gitflowStore.quickSwitch',
+  openWorktree: 'gitflowStore.openWorktree',
+  removeWorktree: 'gitflowStore.removeWorktree',
+  refreshWorktrees: 'gitflowStore.refreshWorktrees',
+  showCleanup: 'gitflowStore.showCleanup',
 } as const;
 
 export const CONTEXT_KEYS = {
-  hasWorktrees: 'gitflowStudio.hasWorktrees',
+  hasWorktrees: 'gitflowStore.hasWorktrees',
 } as const;
 
-export const CONFIG_SECTION = 'gitflowStudio';
+export const CONFIG_SECTION = 'gitflowStore';

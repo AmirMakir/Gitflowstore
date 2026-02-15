@@ -4,7 +4,7 @@ let outputChannel: vscode.OutputChannel | undefined;
 
 export function getOutputChannel(): vscode.OutputChannel {
   if (!outputChannel) {
-    outputChannel = vscode.window.createOutputChannel('GitFlow Studio');
+    outputChannel = vscode.window.createOutputChannel('GitFlow Store');
   }
   return outputChannel;
 }

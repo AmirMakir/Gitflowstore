@@ -16,7 +16,7 @@ export class StatusBarManager implements vscode.Disposable {
       100
     );
     this.item.command = COMMANDS.quickSwitch;
-    this.item.tooltip = 'GitFlow Studio: Click to switch worktree';
+    this.item.tooltip = 'GitFlow Store: Click to switch worktree';
 
     this.worktreeService.onDidChange(
       () => this.update(),

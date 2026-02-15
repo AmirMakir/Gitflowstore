@@ -283,7 +283,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       script-src 'nonce-${nonce}';
       font-src ${webview.cspSource};">
   <link href="${styleUri}" rel="stylesheet">
-  <title>GitFlow Studio</title>
+  <title>GitFlow Store</title>
 </head>
 <body>
   <div id="root"></div>

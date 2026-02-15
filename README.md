@@ -1,81 +1,104 @@
-# GitFlow Studio
+# GitFlow Store
 
-Visual git worktree manager with AI agent integration for VS Code.
+**Visual git worktree manager for VS Code** — run multiple branches side-by-side, each in its own isolated workspace.
 
-## The Problem
+[![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/AmirMakir.gitflow-store)](https://marketplace.visualstudio.com/items?itemName=AmirMakir.gitflow-store)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Developers using AI agents (Claude Code, Copilot CLI, Aider) face a fundamental limitation: **one working directory = one branch = one agent**. Switching between tasks requires stash, checkout, losing agent context, and rebuilding dependencies.
+---
 
-Git worktrees solve this elegantly — each branch lives in its own directory. But less than 5% of developers use them because management is CLI-only with no visual tools.
+## Why Worktrees?
 
-## The Solution
+Developers using AI agents (Claude Code, Copilot, Aider) hit a wall: **one directory = one branch = one agent**. Switching tasks means stashing, checking out, losing context, and rebuilding.
 
-GitFlow Studio provides a **visual dashboard** for managing git worktrees, designed for parallel AI-agent workflows.
+[Git worktrees](https://git-scm.com/docs/git-worktree) solve this — each branch gets its own folder. But managing them is CLI-only with zero visual tooling. **Less than 5% of developers use them.**
 
-Each worktree is an isolated workspace with its own branch, state, and (soon) AI session — like browser tabs, but for branches.
+GitFlow Store changes that with a visual dashboard built into VS Code.
+
+---
 
 ## Features
 
-### Visual Worktree Dashboard
-Sidebar panel with cards for all worktrees showing:
-- Branch name and path
+### Worktree Dashboard
+
+A sidebar panel showing all your worktrees at a glance:
+
+- Branch name and file path
 - Uncommitted changes count
-- Ahead/behind remote
-- Last commit info
-- Status: active / idle / merged / stale
+- Ahead/behind remote tracking
+- Last commit message and timestamp
+- Status badges: **active** / **idle** / **merged** / **stale**
 
-### One-Click Worktree Creation
-- Pick existing branch or create new from any base
-- Auto-setup: copy `.env` files, create symlinks, run install commands
-- Open in new VS Code window automatically
+### One-Click Creation
 
-### Quick Switch (`Ctrl+Shift+W`)
+Create new worktrees without touching the terminal:
+
+- Pick an existing branch or create a new one from any base
+- Auto-setup: copy `.env` files, symlink `node_modules`, run install commands
+- Optionally open in a new VS Code window
+
+### Quick Switch (`Ctrl+Shift+W` / `Cmd+Shift+W`)
+
 Fuzzy search across all worktrees — like `Ctrl+P` for files, but for workspaces.
 
 ### Cleanup Manager
+
+Keep your repo tidy:
+
 - Filter by: merged branches, stale worktrees, prunable entries
 - Batch delete with safety warnings for uncommitted changes
 
 ### Auto-Setup Pipeline
-Configurable per-project in `settings.json`:
-- Copy config files (`.env`, `.env.local`)
-- Symlink heavy directories (`node_modules`, `.venv`)
-- Run post-create commands (`npm install`, `pip install`)
 
-### Status Bar
-Shows current worktree and total count. Click to quick-switch.
+Configure per-project automation in `settings.json`:
+
+- **Copy files** — `.env`, `.env.local`, config files
+- **Symlink directories** — `node_modules`, `.venv` (saves disk space)
+- **Post-create commands** — `npm install`, `pip install -r requirements.txt`
+
+### Status Bar Integration
+
+Shows current worktree name and total count. Click to quick-switch.
+
+---
 
 ## Extension Settings
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `gitflowStudio.autoSetup.copyFiles` | `[".env", ".env.local"]` | Files to copy from main worktree |
-| `gitflowStudio.autoSetup.symlinkDirs` | `[]` | Directories to symlink instead of copying |
-| `gitflowStudio.autoSetup.postCreateCommands` | `[]` | Commands to run after creation |
-| `gitflowStudio.autoSetup.openInNewWindow` | `true` | Open new worktree in new window |
-| `gitflowStudio.worktreeBasePath` | `""` | Base directory for worktrees (empty = sibling to repo) |
-| `gitflowStudio.pollIntervalSeconds` | `30` | Remote status polling interval |
-| `gitflowStudio.staleThresholdDays` | `14` | Days before a worktree is marked stale |
+| `gitflowStore.autoSetup.copyFiles` | `[".env", ".env.local"]` | Files to copy from main worktree |
+| `gitflowStore.autoSetup.symlinkDirs` | `[]` | Directories to symlink instead of copying |
+| `gitflowStore.autoSetup.postCreateCommands` | `[]` | Shell commands to run after creation |
+| `gitflowStore.autoSetup.openInNewWindow` | `true` | Open new worktree in a new VS Code window |
+| `gitflowStore.worktreeBasePath` | `""` | Base directory for worktrees (empty = sibling to repo) |
+| `gitflowStore.pollIntervalSeconds` | `30` | Interval (seconds) for remote status polling |
+| `gitflowStore.staleThresholdDays` | `14` | Days before a worktree is marked stale |
 
 ## Commands
 
 | Command | Keybinding | Description |
 |---------|------------|-------------|
-| GitFlow Studio: Create Worktree | — | Open creation form |
-| GitFlow Studio: Quick Switch Worktree | `Ctrl+Shift+W` | Fuzzy search worktrees |
-| GitFlow Studio: Refresh Worktrees | — | Refresh dashboard data |
-| GitFlow Studio: Cleanup Manager | — | Open cleanup view |
+| GitFlow Store: Create Worktree | — | Open the worktree creation form |
+| GitFlow Store: Quick Switch Worktree | `Ctrl+Shift+W` | Fuzzy search and switch worktrees |
+| GitFlow Store: Open Worktree in New Window | — | Open a worktree in a separate VS Code window |
+| GitFlow Store: Remove Worktree | — | Delete a worktree with safety checks |
+| GitFlow Store: Refresh Worktrees | — | Refresh the dashboard data |
+| GitFlow Store: Cleanup Manager | — | Open the cleanup view |
 
 ## Requirements
 
-- VS Code 1.85+
-- Git installed and available in PATH
+- **VS Code** 1.85 or later
+- **Git** 2.15+ installed and available in PATH
 
 ## Roadmap
 
 - **v0.2** — Per-worktree AI sessions (Claude Code, Aider integration)
 - **v0.3** — Worktree templates, branch comparison view
 
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/AmirMakir/Gitflowstore).
+
 ## License
 
-MIT
+[MIT](LICENSE)

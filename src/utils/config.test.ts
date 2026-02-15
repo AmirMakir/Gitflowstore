@@ -19,7 +19,7 @@ describe('ConfigManager', () => {
     const result = config.get<number>('staleThresholdDays', 14);
 
     expect(result).toBe(30);
-    expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith('gitflowStudio');
+    expect(vscode.workspace.getConfiguration).toHaveBeenCalledWith('gitflowStore');
   });
 
   // Test 35

@@ -31,7 +31,7 @@ export class SetupPipeline {
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: 'GitFlow Studio: Setting up worktree...',
+        title: 'GitFlow Store: Setting up worktree...',
         cancellable: true,
       },
       async (progress, token) => {

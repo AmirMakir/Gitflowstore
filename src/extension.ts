@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext): void {
     return;
   }
 
-  log(`GitFlow Studio activating in ${workspaceRoot}`);
+  log(`GitFlow Store activating in ${workspaceRoot}`);
 
   // Instantiate services
   const config = new ConfigManager();
@@ -130,9 +130,9 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  log('GitFlow Studio activated successfully');
+  log('GitFlow Store activated successfully');
 }
 
 export function deactivate(): void {
-  log('GitFlow Studio deactivated');
+  log('GitFlow Store deactivated');
 }
