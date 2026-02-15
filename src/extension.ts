@@ -7,7 +7,7 @@ import { CleanupService } from './core/cleanupService';
 import { QuickPick } from './ui/quickPick';
 import { StatusBarManager } from './ui/statusBar';
 import { ConfigManager } from './utils/config';
-import { log } from './utils/logger';
+import { log, logError } from './utils/logger';
 import { VIEW_IDS, COMMANDS, CONTEXT_KEYS } from './shared/constants';
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const config = new ConfigManager();
   const gitService = new GitService(workspaceRoot);
   const worktreeService = new WorktreeService(gitService, config);
-  const setupPipeline = new SetupPipeline(config, workspaceRoot);
+  const setupPipeline = new SetupPipeline(config, gitService);
   const cleanupService = new CleanupService(gitService, worktreeService, config);
 
   // Register sidebar webview provider
@@ -69,26 +69,44 @@ export function activate(context: vscode.ExtensionContext): void {
   const statusBar = new StatusBarManager(worktreeService, workspaceRoot);
   context.subscriptions.push(statusBar);
 
-  // Set context key for keybinding
-  vscode.commands.executeCommand('setContext', CONTEXT_KEYS.hasWorktrees, true);
+  // Update context key reactively based on worktree count
+  const updateContextKey = async () => {
+    const worktrees = await worktreeService.getAll();
+    vscode.commands.executeCommand('setContext', CONTEXT_KEYS.hasWorktrees, worktrees.length > 1);
+  };
+  worktreeService.onDidChange(updateContextKey);
+  updateContextKey();
 
-  // File system watcher for .git changes (debounced)
-  const gitWatcher = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(workspaceRoot, '.git/**')
-  );
+  // File system watcher for git changes (debounced).
+  // Resolves git-common-dir so the watcher works inside worktrees
+  // where .git is a file, not a directory.
   let debounceTimer: ReturnType<typeof setTimeout> | undefined;
   const debouncedRefresh = () => {
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => sidebarProvider.refresh(), 500);
   };
 
-  gitWatcher.onDidChange(debouncedRefresh);
-  gitWatcher.onDidCreate(debouncedRefresh);
-  gitWatcher.onDidDelete(debouncedRefresh);
-  context.subscriptions.push(gitWatcher);
+  let gitWatcher: vscode.FileSystemWatcher | undefined;
+  const setupWatcher = (watchPath: string, pattern: string) => {
+    gitWatcher = vscode.workspace.createFileSystemWatcher(
+      new vscode.RelativePattern(watchPath, pattern)
+    );
+    gitWatcher.onDidChange(debouncedRefresh);
+    gitWatcher.onDidCreate(debouncedRefresh);
+    gitWatcher.onDidDelete(debouncedRefresh);
+  };
+
+  gitService.getGitCommonDir().then((gitDir) => {
+    setupWatcher(gitDir, '**');
+  }).catch((err) => {
+    logError('Failed to resolve git common dir, falling back to .git/**', err);
+    setupWatcher(workspaceRoot, '.git/**');
+  });
+
   context.subscriptions.push({
     dispose: () => {
       if (debounceTimer) clearTimeout(debounceTimer);
+      gitWatcher?.dispose();
     },
   });
 

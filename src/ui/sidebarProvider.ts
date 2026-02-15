@@ -71,7 +71,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   async refreshRemoteStatus(): Promise<void> {
-    await this.sendWorktreeData();
+    await this.worktreeService.refresh();
   }
 
   showCreateForm(): void {
@@ -191,13 +191,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 this.postMessage({ type: 'removeResult', success: true, path: message.path });
               } catch (retryErr) {
                 logError('Retry remove failed', retryErr);
-                vscode.window.showErrorMessage(
-                  `Still cannot delete: ${retryErr instanceof Error ? retryErr.message : retryErr}`
-                );
+                const retryMsg = retryErr instanceof Error ? retryErr.message : String(retryErr);
+                vscode.window.showErrorMessage(`Still cannot delete: ${retryMsg}`);
+                this.postMessage({ type: 'removeResult', success: false, path: message.path, error: retryMsg });
               }
+            } else {
+              this.postMessage({ type: 'removeResult', success: false, path: message.path, error: 'Retry dismissed' });
             }
           } else {
             vscode.window.showErrorMessage(`Failed to remove worktree: ${errMsg}`);
+            this.postMessage({ type: 'removeResult', success: false, path: message.path, error: errMsg });
           }
         }
         break;
@@ -296,11 +299,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 }
 
 function getNonce(): string {
-  let text = '';
-  const chars =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 32; i++) {
-    text += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return text;
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }

@@ -1,5 +1,3 @@
-export const EXTENSION_ID = 'gitflowStudio';
-
 export const VIEW_IDS = {
   dashboard: 'gitflowStudio.dashboard',
 } as const;
@@ -18,13 +16,3 @@ export const CONTEXT_KEYS = {
 } as const;
 
 export const CONFIG_SECTION = 'gitflowStudio';
-
-export const CONFIG_KEYS = {
-  copyFiles: 'autoSetup.copyFiles',
-  symlinkDirs: 'autoSetup.symlinkDirs',
-  postCreateCommands: 'autoSetup.postCreateCommands',
-  openInNewWindow: 'autoSetup.openInNewWindow',
-  worktreeBasePath: 'worktreeBasePath',
-  pollIntervalSeconds: 'pollIntervalSeconds',
-  staleThresholdDays: 'staleThresholdDays',
-} as const;

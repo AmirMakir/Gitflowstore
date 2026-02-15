@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { WorktreeService } from '../core/worktreeService';
 import { COMMANDS } from '../shared/constants';
 
@@ -36,10 +37,12 @@ export class StatusBarManager implements vscode.Disposable {
         return;
       }
 
-      const normalizedCurrent = this.currentPath.toLowerCase();
-      const current = worktrees.find((wt) =>
-        normalizedCurrent.startsWith(wt.path.toLowerCase())
-      );
+      const normalizedCurrent = path.normalize(this.currentPath).toLowerCase();
+      const current = worktrees.find((wt) => {
+        const wtPath = path.normalize(wt.path).toLowerCase();
+        // Match exactly or as a parent directory (with separator)
+        return normalizedCurrent === wtPath || normalizedCurrent.startsWith(wtPath + path.sep);
+      });
 
       this.item.text = `$(git-branch) ${current?.displayName ?? 'worktree'} [${count}]`;
       this.item.show();

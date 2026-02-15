@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BranchPicker } from './BranchPicker';
 import { useBranches } from '../hooks/useWorktrees';
-
-interface VSCodeApi {
-  postMessage(message: unknown): void;
-}
+import type { VSCodeApi } from '../hooks/useVSCodeApi';
 
 interface Props {
   vscode: VSCodeApi;
@@ -31,11 +28,15 @@ export function CreateDialog({ vscode, onBack }: Props) {
         if (!message.success) {
           setError(message.error || 'Failed to create worktree');
         }
+      } else if (message.type === 'error' && creating) {
+        // Catch-all: if an error arrives while creating, unblock the button
+        setCreating(false);
+        setError(message.message || 'An unexpected error occurred');
       }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, []);
+  }, [creating]);
 
   const handleCreate = () => {
     if (!branchName.trim()) return;

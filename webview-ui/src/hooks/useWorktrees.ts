@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import type { VSCodeApi } from './useVSCodeApi';
 
 export interface CommitInfo {
   sha: string;
@@ -46,10 +47,6 @@ export interface CleanupCandidate {
   details: string;
 }
 
-interface VSCodeApi {
-  postMessage(message: unknown): void;
-}
-
 export function useWorktrees(vscode: VSCodeApi) {
   const [worktrees, setWorktrees] = useState<WorktreeCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,25 +87,36 @@ export function useWorktrees(vscode: VSCodeApi) {
 export function useBranches(vscode: VSCodeApi) {
   const [branches, setBranches] = useState<BranchInfo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       const message = event.data;
-      if (message.type === 'branchData') {
-        setBranches(message.data);
-        setLoading(false);
+      switch (message.type) {
+        case 'branchData':
+          setBranches(message.data);
+          setLoading(false);
+          setError(null);
+          break;
+        case 'error':
+          if (loading) {
+            setLoading(false);
+            setError(message.message);
+          }
+          break;
       }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, []);
+  }, [loading]);
 
   const fetch = useCallback(() => {
     setLoading(true);
+    setError(null);
     vscode.postMessage({ type: 'requestBranches' });
   }, [vscode]);
 
-  return { branches, loading, fetch };
+  return { branches, loading, error, fetch };
 }
 
 export interface CleanupResult {
@@ -133,6 +141,12 @@ export function useCleanup(vscode: VSCodeApi) {
           setLastResult({ succeeded: message.succeeded, failed: message.failed });
           setLoading(true);
           vscode.postMessage({ type: 'requestCleanupAnalysis' });
+          break;
+        case 'error':
+          setLoading(false);
+          break;
+        case 'loading':
+          setLoading(message.isLoading);
           break;
       }
     };

@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useCleanup } from '../hooks/useWorktrees';
 import type { CleanupCandidate } from '../hooks/useWorktrees';
-
-interface VSCodeApi {
-  postMessage(message: unknown): void;
-}
+import type { VSCodeApi } from '../hooks/useVSCodeApi';
 
 interface Props {
   vscode: VSCodeApi;
@@ -28,6 +25,12 @@ export function CleanupView({ vscode, onBack }: Props) {
     setSelectedPaths(new Set());
     setConfirmingRemove(false);
   }, [candidates]);
+
+  // Clear selection when filter changes so hidden items aren't selected
+  useEffect(() => {
+    setSelectedPaths(new Set());
+    setConfirmingRemove(false);
+  }, [filter]);
 
   const filtered = candidates.filter(
     (c) => filter === 'all' || c.reason === filter

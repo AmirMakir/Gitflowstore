@@ -10,7 +10,7 @@ export class WorktreeService implements vscode.Disposable {
   readonly onDidChange = this._onDidChange.event;
 
   private cache: WorktreeCard[] = [];
-  private isRefreshing = false;
+  private refreshPromise: Promise<WorktreeCard[]> | null = null;
   private disposables: vscode.Disposable[] = [];
 
   constructor(
@@ -28,11 +28,21 @@ export class WorktreeService implements vscode.Disposable {
   }
 
   async refresh(): Promise<WorktreeCard[]> {
-    if (this.isRefreshing) {
-      return this.cache;
+    // If a refresh is already in progress, return the same promise
+    // so all concurrent callers get the fresh result
+    if (this.refreshPromise) {
+      return this.refreshPromise;
     }
-    this.isRefreshing = true;
 
+    this.refreshPromise = this.doRefresh();
+    try {
+      return await this.refreshPromise;
+    } finally {
+      this.refreshPromise = null;
+    }
+  }
+
+  private async doRefresh(): Promise<WorktreeCard[]> {
     try {
       const worktrees = await this.git.listWorktrees();
       let repoRoot: string;
@@ -60,10 +70,8 @@ export class WorktreeService implements vscode.Disposable {
           })
       );
 
-      const mergedBranches = Array.from(mergedSet);
-
       const cards = await Promise.all(
-        worktrees.map((wt) => this.buildCard(wt, repoRoot, mergedBranches))
+        worktrees.map((wt) => this.buildCard(wt, repoRoot, mergedSet))
       );
 
       this.cache = cards;
@@ -72,8 +80,6 @@ export class WorktreeService implements vscode.Disposable {
     } catch (err) {
       logError('Failed to refresh worktrees', err);
       return this.cache;
-    } finally {
-      this.isRefreshing = false;
     }
   }
 
@@ -86,7 +92,13 @@ export class WorktreeService implements vscode.Disposable {
     const repoRoot = await this.git.getRepoRoot();
     const basePath = this.config.get<string>('worktreeBasePath', '') || path.dirname(repoRoot);
     const dirName = options.customPath || this.sanitizeBranchName(options.branch);
-    const worktreePath = path.join(basePath, dirName);
+    const worktreePath = path.resolve(basePath, dirName);
+
+    // Ensure the resolved path stays within the base directory
+    const normalizedBase = path.resolve(basePath);
+    if (!worktreePath.startsWith(normalizedBase + path.sep) && worktreePath !== normalizedBase) {
+      throw new Error(`Worktree path must be within ${normalizedBase}`);
+    }
 
     await this.git.addWorktree(worktreePath, options.branch, {
       newBranch: options.isNewBranch,
@@ -112,7 +124,7 @@ export class WorktreeService implements vscode.Disposable {
   private async buildCard(
     wt: WorktreeInfo,
     repoRoot: string,
-    mergedBranches: string[]
+    mergedBranches: Set<string>
   ): Promise<WorktreeCard> {
     const [status, lastCommit] = await Promise.all([
       this.git.getStatus(wt.path).catch((): WorktreeStatusInfo => ({
@@ -149,9 +161,9 @@ export class WorktreeService implements vscode.Disposable {
     wt: WorktreeInfo,
     status: WorktreeStatusInfo,
     lastCommit: CommitInfo,
-    mergedBranches: string[]
+    mergedBranches: Set<string>
   ): 'active' | 'idle' | 'merged' | 'stale' {
-    if (mergedBranches.includes(wt.branchShort)) {
+    if (mergedBranches.has(wt.branchShort)) {
       return 'merged';
     }
 

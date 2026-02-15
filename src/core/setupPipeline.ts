@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import type { GitService } from './gitService';
 import { ConfigManager } from '../utils/config';
 import { copyFiles, createSymlinks } from '../utils/fileOps';
 import { log, logError } from '../utils/logger';
@@ -11,7 +12,7 @@ interface PipelineStep {
 export class SetupPipeline {
   constructor(
     private config: ConfigManager,
-    private mainWorktreePath: string
+    private gitService: GitService
   ) {}
 
   async run(
@@ -22,6 +23,10 @@ export class SetupPipeline {
     if (steps.length === 0) {
       return;
     }
+
+    // Resolve the main worktree path at runtime so it's always correct,
+    // even when VS Code is opened inside a secondary worktree.
+    const mainWorktreePath = await this.resolveMainWorktreePath();
 
     await vscode.window.withProgress(
       {
@@ -42,7 +47,7 @@ export class SetupPipeline {
           });
 
           try {
-            await steps[i].execute(worktreePath, this.mainWorktreePath);
+            await steps[i].execute(worktreePath, mainWorktreePath);
             log(`Setup step completed: ${steps[i].name}`);
           } catch (err) {
             logError(`Setup step failed: ${steps[i].name}`, err);
@@ -58,6 +63,12 @@ export class SetupPipeline {
         }
       }
     );
+  }
+
+  private async resolveMainWorktreePath(): Promise<string> {
+    const worktrees = await this.gitService.listWorktrees();
+    // The first entry in `git worktree list` is always the main worktree
+    return worktrees[0].path;
   }
 
   private buildSteps(options: {

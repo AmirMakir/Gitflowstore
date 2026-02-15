@@ -1,9 +1,6 @@
 import { WorktreeCard } from './WorktreeCard';
 import type { WorktreeCard as WorktreeCardType } from '../hooks/useWorktrees';
-
-interface VSCodeApi {
-  postMessage(message: unknown): void;
-}
+import type { VSCodeApi } from '../hooks/useVSCodeApi';
 
 interface Props {
   worktrees: WorktreeCardType[];

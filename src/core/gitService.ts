@@ -121,20 +121,6 @@ export class GitService {
       });
   }
 
-  async getMergedBranches(targetBranch?: string): Promise<string[]> {
-    const args = ['branch', '--merged'];
-    if (targetBranch) {
-      args.push(targetBranch);
-    }
-    const output = await this.exec(args);
-
-    return output
-      .trim()
-      .split('\n')
-      .map((line) => line.replace(/^\*?\s+/, '').trim())
-      .filter((name) => name.length > 0);
-  }
-
   async isBranchMergedInto(branch: string, target: string): Promise<boolean> {
     try {
       await this.exec(['merge-base', '--is-ancestor', branch, target]);
@@ -171,6 +157,9 @@ export class GitService {
         const y = xy[1];
         if (x !== '.' && x !== '?') stagedCount++;
         if (y !== '.' && y !== '?') modifiedCount++;
+      } else if (line.startsWith('u ')) {
+        // Unmerged (conflict) entries — count as modified
+        modifiedCount++;
       } else if (line.startsWith('? ')) {
         untrackedCount++;
       }
@@ -208,14 +197,9 @@ export class GitService {
     return path.normalize(output.trim());
   }
 
-  async getCommonGitDir(): Promise<string> {
+  async getGitCommonDir(): Promise<string> {
     const output = await this.exec(['rev-parse', '--git-common-dir']);
     return path.resolve(this.cwd, output.trim());
-  }
-
-  async getCurrentBranch(): Promise<string> {
-    const output = await this.exec(['rev-parse', '--abbrev-ref', 'HEAD']);
-    return output.trim();
   }
 
   // --- Internal ---
