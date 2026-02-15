@@ -2,7 +2,7 @@
   "name": "gitflow-store",
   "displayName": "GitFlow Store",
   "description": "Manage git worktrees from a sidebar panel. Create, switch, and clean up worktrees without the terminal.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "AmirMakir",
   "license": "MIT",
   "icon": "resources/gitflow_store.png",
@@ -120,19 +120,28 @@
       "properties": {
         "gitflowStore.autoSetup.copyFiles": {
           "type": "array",
-          "items": { "type": "string" },
-          "default": [".env", ".env.local"],
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            ".env",
+            ".env.local"
+          ],
           "description": "Files to copy from main worktree when creating a new worktree"
         },
         "gitflowStore.autoSetup.symlinkDirs": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "Directories to symlink (e.g., node_modules) instead of copying"
         },
         "gitflowStore.autoSetup.postCreateCommands": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "Shell commands to run after worktree creation (e.g., npm install)"
         },
