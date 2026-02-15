@@ -15,7 +15,7 @@ I built this extension because I got tired of juggling worktrees manually.
 
 ## What it does
 
-It adds a sidebar panel to VS Code where you can see all your worktrees, create new ones, switch between them, and clean up old ones. No terminal needed.
+It adds a sidebar panel to VS Code where you can see all your worktrees, create new ones, switch between them, and clean up old ones. Everything through the UI, no git commands.
 
 ### Dashboard
 
@@ -69,11 +69,11 @@ All settings live under `gitflowStore.*` in your VS Code settings:
 
 ## What's next
 
-Working on per-worktree AI agent sessions (so each worktree can have its own Claude Code or Aider instance) and worktree templates for common workflows.
+Right now I'm working on letting each worktree have its own AI agent session (Claude Code, Aider, etc). Also want to add worktree templates so you can save your setup and reuse it.
 
 ## Contributing
 
-Found a bug or want a feature? Open an issue or PR on [GitHub](https://github.com/AmirMakir/Gitflowstore).
+If something doesn't work or you have ideas, just open an issue on [GitHub](https://github.com/AmirMakir/Gitflowstore). PRs are welcome too.
 
 ## License
 

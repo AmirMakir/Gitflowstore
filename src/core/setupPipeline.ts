@@ -67,6 +67,9 @@ export class SetupPipeline {
 
   private async resolveMainWorktreePath(): Promise<string> {
     const worktrees = await this.gitService.listWorktrees();
+    if (worktrees.length === 0) {
+      throw new Error('No worktrees found — is this a valid git repository?');
+    }
     // The first entry in `git worktree list` is always the main worktree
     return worktrees[0].path;
   }

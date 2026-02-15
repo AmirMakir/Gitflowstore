@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(del c:workspacesrcindex.ts)"
+      "Bash(del c:workspacesrcindex.ts)",
+      "Bash(npx vitest:*)"
     ]
   }
 }

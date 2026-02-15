@@ -50,7 +50,7 @@ export class CleanupService {
           reason: 'merged',
           safeToDelete: !hasChanges,
           details: hasChanges
-            ? `Merged but has ${wt.modifiedCount + wt.untrackedCount} uncommitted changes`
+            ? `Merged but has ${wt.modifiedCount + wt.untrackedCount + wt.stagedCount} uncommitted changes`
             : 'Branch has been merged',
         });
       } else if (wt.lastCommit.date) {
