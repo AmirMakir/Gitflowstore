@@ -2,7 +2,7 @@
   "name": "gitflow-store",
   "displayName": "GitFlow Store",
   "description": "Manage git worktrees from a sidebar panel. Create, switch, and clean up worktrees without the terminal.",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "publisher": "AmirMakir",
   "license": "MIT",
   "icon": "resources/gitflow_store.png",

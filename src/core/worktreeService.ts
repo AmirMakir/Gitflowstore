@@ -56,11 +56,18 @@ export class WorktreeService implements vscode.Disposable {
       const mainBranch = await this.detectMainBranch(worktrees);
 
       // Check each non-main branch individually using merge-base --is-ancestor
+      const mainWt = worktrees.find((wt) => wt.branchShort === mainBranch);
+      const mainHead = mainWt?.head;
       const mergedSet = new Set<string>();
       await Promise.all(
         worktrees
           .filter((wt) => wt.branchShort && wt.branchShort !== mainBranch)
           .map(async (wt) => {
+            // Skip branches pointing to the same commit as main —
+            // they were just created from main, not actually merged.
+            if (mainHead && wt.head === mainHead) {
+              return;
+            }
             const merged = await this.git
               .isBranchMergedInto(wt.branchShort, mainBranch)
               .catch(() => false);

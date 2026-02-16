@@ -2,6 +2,24 @@
 
 All notable changes to GitFlow Store will be documented in this file.
 
+## [0.1.4] - 2026-02-16
+
+### Fixed
+
+- Newly created branches pointing to the same commit as main are no longer falsely flagged as "merged" in the cleanup manager and worktree dashboard
+
+## [0.1.3] - 2026-02-15
+
+### Changed
+
+- Version bump release
+
+## [0.1.2] - 2026-02-15
+
+### Changed
+
+- Package manifest formatting cleanup
+
 ## [0.1.1] - 2026-02-15
 
 ### Fixed

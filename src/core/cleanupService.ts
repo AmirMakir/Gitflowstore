@@ -20,6 +20,7 @@ export class CleanupService {
     // Detect main branch for merge checking
     const mainWt = worktrees.find((wt) => wt.isMain);
     const mainBranch = mainWt?.branchShort || 'main';
+    const mainHead = mainWt?.lastCommit?.sha;
 
     const candidates: CleanupCandidate[] = [];
 
@@ -39,10 +40,16 @@ export class CleanupService {
       const hasChanges =
         wt.modifiedCount > 0 || wt.untrackedCount > 0 || wt.stagedCount > 0;
 
+      // Skip branches pointing to the same commit as main —
+      // they were just created from main, not actually merged.
+      const isSameAsMain = mainHead && wt.lastCommit?.sha === mainHead;
+
       // Use merge-base --is-ancestor for reliable merge detection
-      const isMerged = await this.git
-        .isBranchMergedInto(wt.branchShort, mainBranch)
-        .catch(() => false);
+      const isMerged = isSameAsMain
+        ? false
+        : await this.git
+            .isBranchMergedInto(wt.branchShort, mainBranch)
+            .catch(() => false);
 
       if (isMerged) {
         candidates.push({
